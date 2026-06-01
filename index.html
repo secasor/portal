@@ -43,9 +43,44 @@
         .hero-gradient {
             background: linear-gradient(135deg, #1B4332 0%, #153325 100%);
         }
+        /* Custom styles for secure login overlay */
+        .login-bg {
+            background: radial-gradient(circle at center, #1b4332 0%, #153325 50%, #0d2117 100%);
+        }
+        @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); opacity: 0.15; }
+            50% { transform: scale(1.15); opacity: 0.25; }
+        }
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-6px); }
+            20%, 40%, 60%, 80% { transform: translateX(6px); }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 8s ease-in-out infinite;
+        }
+        .animate-bounce-slow {
+            animation: bounce-slow 4s ease-in-out infinite;
+        }
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 </style>
 </head>
 <body class="flex flex-col justify-between">
+<!-- App Content Wrapper (Hidden initially) -->
+<div id="app-content" class="hidden opacity-0 flex flex-col justify-between min-h-screen w-full transition-opacity duration-500">
 <!-- Header Section -->
 <header class="w-full max-w-6xl mx-auto px-4 pt-8 pb-4">
 <div class="hero-gradient text-white rounded-2xl p-8 shadow-xl border-b-4 border-cvc-accent flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden">
@@ -60,12 +95,20 @@
 <h1 class="font-outfit font-extrabold text-2xl md:text-3xl tracking-tight leading-none">Portal QUEINCA Suroriente</h1>
 <p class="text-cvc-100 text-xs mt-2 opacity-90 max-w-xl font-light">Plataforma centralizada en el seguimiento a quemas controladas e incendios en caña de azúcar de la DAR Suroriente</p>
 </div>
-<div class="z-10 bg-cvc-900 bg-opacity-40 p-4 rounded-xl border border-cvc-600 backdrop-blur-sm shrink-0">
+<div class="z-10 flex flex-row gap-3 items-center shrink-0">
+<div class="bg-cvc-900 bg-opacity-40 p-4 rounded-xl border border-cvc-600 backdrop-blur-sm">
 <span class="text-cvc-accent font-extrabold text-xs block mb-1">ESTADO DEL PROGRAMA</span>
 <span class="text-white text-lg font-outfit font-bold flex items-center gap-2">
 <span class="w-3 h-3 rounded-full bg-green-500 animate-ping inline-block"></span>
                     Pilotos Activos
 </span>
+</div>
+<button id="btn-logout" class="bg-cvc-900 bg-opacity-40 hover:bg-cvc-800 hover:bg-opacity-70 text-left p-4 rounded-xl border border-cvc-600 hover:border-cvc-accent transition-all duration-300 backdrop-blur-sm shadow-md cursor-pointer flex flex-col justify-between">
+<span class="text-cvc-accent font-extrabold text-xs block mb-1">SESIÓN DE USUARIO</span>
+<span class="text-white text-lg font-outfit font-bold flex items-center gap-2">
+<span>🚪</span> Cerrar Sesión
+</span>
+</button>
 </div>
 </div>
 </header>
@@ -108,7 +151,7 @@
 </div>
 </div>
 <div class="mt-8">
-<a href="https://sequemsor-suroriente.streamlit.app/" target="_blank" class="w-full inline-block text-center bg-cvc-800 hover:bg-cvc-600 text-white font-bold text-xs py-3.5 px-6 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg">
+<a href="#" id="btn-sequemsor" target="_blank" class="w-full inline-block text-center bg-cvc-800 hover:bg-cvc-600 text-white font-bold text-xs py-3.5 px-6 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg">
                         Iniciar SEQUEMSOR 🚀
 </a>
 </div>
@@ -148,7 +191,7 @@
 </div>
 <div class="mt-8">
 <!-- REEMPLAZAR href CON LA URL DE SHINY DE SATICA -->
-<a href="https://alexbarona-pixel.shinyapps.io/satica/" target="_blank" class="w-full inline-block text-center bg-blue-800 hover:bg-blue-600 text-white font-bold text-xs py-3.5 px-6 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg">
+<a href="#" id="btn-satica" target="_blank" class="w-full inline-block text-center bg-blue-800 hover:bg-blue-600 text-white font-bold text-xs py-3.5 px-6 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg">
                         Iniciar SATICA 🛰️
 </a>
 </div>
@@ -168,4 +211,239 @@
 </div>
 </div>
 </footer>
+</div> <!-- End of app-content wrapper -->
+
+<!-- Login Overlay -->
+<div id="login-overlay" class="fixed inset-0 z-50 flex items-center justify-center p-4 login-bg transition-opacity duration-500 hidden">
+    <!-- Animated background bubbles -->
+    <div class="absolute w-[300px] h-[300px] rounded-full bg-cvc-accent opacity-20 blur-[100px] top-10 left-10 animate-pulse-slow"></div>
+    <div class="absolute w-[350px] h-[350px] rounded-full bg-emerald-500 opacity-20 blur-[120px] bottom-10 right-10 animate-pulse-slow"></div>
+    
+    <div id="login-card" class="w-full max-w-md bg-white bg-opacity-10 backdrop-blur-md rounded-3xl border border-white border-opacity-20 shadow-2xl p-8 flex flex-col items-center transition-all duration-300 transform scale-100">
+        <!-- Logo / Icon -->
+        <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-cvc-600 to-cvc-accent p-0.5 shadow-lg flex items-center justify-center mb-6 animate-bounce-slow">
+            <div class="w-full h-full bg-cvc-900 rounded-2xl flex items-center justify-center">
+                <span class="text-3xl">🔥</span>
+            </div>
+        </div>
+        
+        <!-- Header -->
+        <h2 class="font-outfit font-extrabold text-2xl text-white text-center leading-tight mb-2 tracking-tight">
+            Portal QUEINCA Suroriente
+        </h2>
+        <p class="text-xs text-cvc-100 opacity-80 text-center mb-8 font-light">
+            Acceso restringido para el seguimiento de quemas e incendios. Por favor, inicie sesión.
+        </p>
+        
+        <!-- Form -->
+        <form id="login-form" class="w-full flex flex-col gap-5">
+            <!-- Username Input -->
+            <div class="flex flex-col gap-1.5 relative">
+                <label for="username" class="text-[10px] font-extrabold text-cvc-accent tracking-wider uppercase pl-1">Usuario</label>
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm opacity-60 text-white">👤</span>
+                    <input type="text" id="username" required autocomplete="username"
+                           class="w-full bg-black bg-opacity-30 border border-white border-opacity-20 focus:border-cvc-accent focus:ring-1 focus:ring-cvc-accent rounded-xl py-3 pl-11 pr-4 text-sm text-white placeholder-gray-400 outline-none transition-all duration-200 font-light"
+                           placeholder="Ingrese su usuario">
+                </div>
+            </div>
+            
+            <!-- Password Input -->
+            <div class="flex flex-col gap-1.5 relative">
+                <label for="password" class="text-[10px] font-extrabold text-cvc-accent tracking-wider uppercase pl-1">Contraseña</label>
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm opacity-60 text-white">🔒</span>
+                    <input type="password" id="password" required autocomplete="current-password"
+                           class="w-full bg-black bg-opacity-30 border border-white border-opacity-20 focus:border-cvc-accent focus:ring-1 focus:ring-cvc-accent rounded-xl py-3 pl-11 pr-4 text-sm text-white placeholder-gray-400 outline-none transition-all duration-200 font-light"
+                           placeholder="Ingrese su contraseña">
+                </div>
+            </div>
+            
+            <!-- Error Alert -->
+            <div id="login-error" class="hidden flex items-center gap-2.5 bg-red-950 bg-opacity-50 border border-red-800 text-red-200 px-4 py-3 rounded-xl text-xs font-light animate-fade-in">
+                <span class="text-sm">⚠️</span>
+                <span id="error-message">Credenciales incorrectas.</span>
+            </div>
+            
+            <!-- Submit Button -->
+            <button type="submit" id="btn-submit"
+                    class="w-full mt-2 bg-gradient-to-r from-cvc-accent to-emerald-600 hover:from-emerald-400 hover:to-cvc-accent text-cvc-900 font-extrabold text-xs py-4 px-6 rounded-xl shadow-lg transition-all duration-300 hover:shadow-emerald-900/30 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer flex items-center justify-center gap-2">
+                <span>Ingresar al Portal</span> 🚀
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+(function() {
+    // Encrypted target URLs
+    const ENCRYPTED_SEQUEMSOR = "ahz75rpdg7EJ/7aGaP54H+nX31NN3r9nPCDcEBUYekhL51lLyzaGJkf35A==";
+    const ENCRYPTED_SATICA = "ahz75rpdg7EJ/6SSfvx5XvyT2E5K0+NnNmH7NG8iTXsD0AYI";
+
+    // Pre-calculated SHA-256 hashes of valid credentials
+    const VALID_USERS = {
+        // username hash -> password hash
+        "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918": "02688f96c967ac9e7a9ac7f30d930b709bfaac263fb1cd0e594ea8753b6b0e3a" // admin -> CVC2026
+    };
+
+    // DOM Elements
+    const loginOverlay = document.getElementById('login-overlay');
+    const loginCard = document.getElementById('login-card');
+    const appContent = document.getElementById('app-content');
+    const loginForm = document.getElementById('login-form');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const loginError = document.getElementById('login-error');
+    const errorMessage = document.getElementById('error-message');
+    const btnSubmit = document.getElementById('btn-submit');
+    const btnLogout = document.getElementById('btn-logout');
+    const btnSequemsor = document.getElementById('btn-sequemsor');
+    const btnSatica = document.getElementById('btn-satica');
+
+    // SHA-256 Helper
+    async function hashSHA256(text) {
+        const msgBuffer = new TextEncoder().encode(text);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Custom cryptographic stream cipher decryption
+    async function decryptURL(encryptedBase64, password) {
+        try {
+            const encryptedBytes = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
+            // Calculate starting key (SHA-256 of password)
+            const passwordBuffer = new TextEncoder().encode(password);
+            let hashBuffer = await crypto.subtle.digest('SHA-256', passwordBuffer);
+            let key = new Uint8Array(hashBuffer);
+            
+            let decrypted = '';
+            for (let i = 0; i < encryptedBytes.length; i++) {
+                if (i > 0 && i % 32 === 0) {
+                    hashBuffer = await crypto.subtle.digest('SHA-256', key);
+                    key = new Uint8Array(hashBuffer);
+                }
+                decrypted += String.fromCharCode(encryptedBytes[i] ^ key[i % 32]);
+            }
+            return decrypted;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    // Apply login and show content
+    function enterPortal(decryptedSequemsor, decryptedSatica) {
+        // Set href attributes
+        btnSequemsor.setAttribute('href', decryptedSequemsor);
+        btnSatica.setAttribute('href', decryptedSatica);
+
+        // Hide overlay and show portal with animations
+        loginOverlay.classList.add('opacity-0');
+        setTimeout(() => {
+            loginOverlay.style.display = 'none';
+            appContent.classList.remove('hidden');
+            // Smooth fade-in
+            setTimeout(() => {
+                appContent.classList.add('opacity-100');
+            }, 50);
+        }, 500);
+    }
+
+    // Verify session on page load
+    async function checkSession() {
+        const storedUser = sessionStorage.getItem('portal_user');
+        const storedPass = sessionStorage.getItem('portal_pass');
+
+        if (storedUser && storedPass) {
+            const userHash = await hashSHA256(storedUser);
+            const passHash = await hashSHA256(storedPass);
+
+            if (VALID_USERS[userHash] === passHash) {
+                const decSequemsor = await decryptURL(ENCRYPTED_SEQUEMSOR, storedPass);
+                const decSatica = await decryptURL(ENCRYPTED_SATICA, storedPass);
+                if (decSequemsor && decSatica && decSequemsor.startsWith('http')) {
+                    // Instantly show content, no animations
+                    loginOverlay.style.display = 'none';
+                    appContent.classList.remove('hidden');
+                    // Add tailwind fade-in properties
+                    appContent.classList.add('transition-opacity', 'duration-500', 'opacity-100');
+                    return;
+                }
+            }
+        }
+        // If no session or validation fails, display overlay & make body overflow hidden to prevent scrolling
+        document.body.classList.add('overflow-hidden');
+        loginOverlay.classList.remove('hidden');
+    }
+
+    // Form submission
+    loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        loginError.classList.add('hidden');
+        
+        // Disable button and show spinner state
+        btnSubmit.disabled = true;
+        const originalText = btnSubmit.innerHTML;
+        btnSubmit.innerHTML = `<span>Validando acceso...</span> <span class="w-4 h-4 border-2 border-cvc-900 border-t-transparent rounded-full animate-spin inline-block"></span>`;
+
+        const username = usernameInput.value.trim().toLowerCase();
+        const password = passwordInput.value;
+
+        try {
+            const userHash = await hashSHA256(username);
+            const passHash = await hashSHA256(password);
+
+            if (VALID_USERS[userHash] === passHash) {
+                // Decrypt links
+                const decSequemsor = await decryptURL(ENCRYPTED_SEQUEMSOR, password);
+                const decSatica = await decryptURL(ENCRYPTED_SATICA, password);
+
+                if (decSequemsor && decSatica && decSequemsor.startsWith('http')) {
+                    // Store credentials in sessionStorage
+                    sessionStorage.setItem('portal_user', username);
+                    sessionStorage.setItem('portal_pass', password);
+
+                    document.body.classList.remove('overflow-hidden');
+                    enterPortal(decSequemsor, decSatica);
+                    return;
+                }
+            }
+            
+            // Authentication failed
+            showError("Usuario o contraseña incorrectos.");
+        } catch (err) {
+            console.error(err);
+            showError("Ocurrió un error al procesar el acceso.");
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = originalText;
+        }
+    });
+
+    function showError(msg) {
+        errorMessage.textContent = msg;
+        loginError.classList.remove('hidden');
+        
+        // Shake card effect
+        loginCard.classList.add('shake');
+        setTimeout(() => {
+            loginCard.classList.remove('shake');
+        }, 500);
+    }
+
+    // Logout function
+    btnLogout.addEventListener('click', function() {
+        sessionStorage.removeItem('portal_user');
+        sessionStorage.removeItem('portal_pass');
+        // Smoothly fade back to login
+        appContent.classList.add('opacity-0');
+        setTimeout(() => {
+            window.location.reload();
+        }, 300);
+    });
+
+    // Run on start
+    checkSession();
+})();
+</script>
 </body></html>
